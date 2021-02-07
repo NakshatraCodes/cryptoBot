@@ -1,0 +1,24 @@
+{
+  "name": "cryptobot",
+  "version": "1.0.0",
+  "description": "undefined",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NakshatraCodes/cryptoBot.git"
+  },
+  "author": "Nakshatra Saxena",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NakshatraCodes/cryptoBot/issues"
+  },
+  "homepage": "https://github.com/NakshatraCodes/cryptoBot#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "node-telegram-bot-api": "^0.51.0"
+  }
+}
