@@ -1,8 +1,27 @@
 const TelegramBot = require("node-telegram-bot-api");
 const crypto = require("./crypto");
+const mongoose = require("mongoose");
+
+require("./models/Users");
 
 require("dotenv").config();
 const token = process.env.TOKEN;
+
+const User = mongoose.model("users");
+
+mongoose.connect(
+  process.env.MONGO_URI,
+  {
+    authSource: "admin",
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  },
+  () => {
+    console.log("Connected to DB Servers");
+  }
+);
 
 // Created instance of TelegramBot
 const bot = new TelegramBot(token, {
@@ -42,18 +61,29 @@ bot.onText(/\/watch/, async (msg, match) => {
 // Listener (handler) for telegram's /start event
 // This event happened when you start the conversation with both by the very first time
 // Provide the list of available commands
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(
-    chatId,
-    `Welcome at <b>CryptoBot</b>, thank you for using my service
-      Available commands:
-      /watch <b>cryptoName</b> - Watch cryptocurrency for you
-      `,
-    {
-      parse_mode: "HTML",
-    }
-  );
+bot.onText(/\/start/, async (msg) => {
+  const userID = msg.chat.id;
+
+  const existingUser = await User.findOne({ userID });
+
+  if (existingUser) {
+    bot.sendMessage(userID, `Welcome back ${existingUser.name}!`);
+  } else {
+    const response = await new User({
+      userID,
+      name: `${msg.chat.first_name} ${msg.chat.last_name}`,
+      coins: [],
+      notify: false,
+    }).save();
+    bot.sendMessage(
+      userID,
+      `Welcome at <b>CryptoBot</b>, thank you for registering ${response.name}`,
+      {
+        parse_mode: "HTML",
+      }
+    );
+    console.log(response);
+  }
 });
 
 bot.on("polling_error", (msg) => console.log(msg));
