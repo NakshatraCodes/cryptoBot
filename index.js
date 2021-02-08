@@ -6,6 +6,7 @@ require("./models/Users");
 
 require("dotenv").config();
 const token = process.env.TOKEN;
+process.env.NTBA_FIX_319 = 1;
 
 const User = mongoose.model("users");
 
@@ -31,31 +32,37 @@ const bot = new TelegramBot(token, {
 // Listener (handler) for telegram's /bookmark event
 bot.onText(/\/watch/, async (msg, match) => {
   // console.log(msg, match);
+  let coinString = "";
   const chatId = msg.chat.id;
-  const coin = match.input.split(" ")[1];
+  const coin = match.input.split(" ").slice(1);
+  console.log(coin);
+  coin.forEach((element) => {
+    coinString += element + ",";
+  });
   // 'msg' is the received Message from Telegram
   // 'match' is the result of executing the regexp above on the text content
   // of the message
 
   const { data } = await crypto.get("/coins/markets", {
-    params: { vs_currency: "inr", ids: coin },
+    params: { vs_currency: "inr", ids: coinString },
   });
 
-  console.log(data[0].symbol, data[0].current_price);
-  const symbol = data[0].symbol.toUpperCase();
+  let outputString = `Added `;
+  data.forEach((element) => {
+    outputString += `<b>${element.symbol.toUpperCase()}</b>\n`;
+  });
+  outputString += `to your watchlist`;
+
+  console.log(data);
 
   if (coin === undefined) {
     bot.sendMessage(chatId, "Please tell which currency to watch");
     return;
   }
 
-  bot.sendMessage(
-    chatId,
-    `${symbol} is currently valued at <b>${data[0].current_price}</b> INR`,
-    {
-      parse_mode: "HTML",
-    }
-  );
+  bot.sendMessage(chatId, outputString, {
+    parse_mode: "HTML",
+  });
 });
 
 // Listener (handler) for telegram's /start event
